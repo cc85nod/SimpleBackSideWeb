@@ -1,0 +1,38 @@
+--- store_info
+
+id		int AI
+name		varchar(50)
+pic_path	varchar(?)
+password	varchar(50)
+account		varchar(50)
+phone		varchar(15)
+description	text
+hours		text
+
+
+--- coupon
+id 		int AI
+storeid		int
+
+startDate	Date	
+endDate		Date
+
+startTime	time	if all day 00:00
+endTime		time	if all day 24:00
+
+useinterval	int
+weekday		varchar(13) save as '1,2,3,4' seperate by ','
+
+content		text
+authcode	varchar(50) default "Default" if empty
+visible		boolean
+deletion	boolean
+insertTime	timestamp CURRENT_TIMESTAMP
+usercount	int
+
+
+//
+update coupon
+modify original end_date to tomorrow if it is online and started
+add a coupon record start from tommorow or user setting start date if startDate is not tommorow
+if endDate is also tomorrow show error message to client

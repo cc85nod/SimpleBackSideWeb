@@ -1,0 +1,91 @@
+version: '3.7'
+services:
+  php-apache:
+    image: 'myweb:dev'
+    container_name: web-server
+    ports:
+      # http
+      - '80:80'
+      # https
+      - '443:443'
+    # shared folder or file
+    volumes:
+      - ${PROJECT_WEB_PATH}:/code/web
+      # apache document root conf
+      - ./sites-available:/etc/apache2/sites-available
+      # apache server conf
+      - ./php-apache/apache2.conf:/etc/apache2/apache2.conf
+      # php setting
+      - ./php-apache/php.ini:/usr/local/etc/php/php.ini
+    # entry folder
+    working_dir: /code/web
+    # Dockerfile path to run Dockerfile
+    build: ./php-apache/
+    # env file path
+    env_file: ./.env
+    # always restart container when container exits
+    restart: always
+    # wait for run(pre-processing)
+    depends_on:
+      - mysql
+      - phpmyadmin
+    networks:
+      - net-web
+  mysql:
+    image: 'mysql:8.0.17'
+    command:
+      [
+        # origin default is caching_sha2_password
+        --default-authentication-plugin=mysql_native_password,
+      ]
+    container_name: web-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=jerry
+      - MYSQL_PASSWORD=jerry
+    volumes:
+      # storage path
+      - mysql-data:/var/lib/mysql:rw
+      # mysql configuration
+      - mysql-config:/etc/mysql:rw
+      # setup every initial
+      # files in 'docker-entrypoint-initdb.d' will be executed at initial time
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: always
+    networks:
+      - net-web
+  phpmyadmin:
+    image: 'phpmyadmin/phpmyadmin:4.9'
+    container_name: web-phpmyadmin
+    volumes:
+      - ./phpmyadmin:/etc/phpmyadmin
+    ports:
+      - '8080:80'
+    depends_on: 
+        - mysql
+    networks:
+      - net-web
+# internet
+networks:
+  net-web:
+    name: web-server
+
+volumes:
+  mysql-config:
+    name: db-config
+  mysql-data:
+    name: db-data
+  
+# 🔥 Warning
+# 1. services and networks are at the same level
+
+# 💋 Useful
+### How to run
+# docker-compose up -d (detach)
+
+### rebuild all container
+# docker-compose up -d --force-recreate --build
+# docker-compose build --no-cache
+
+### remove all used images
+# docker-compose down --rmi all

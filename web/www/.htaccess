@@ -1,0 +1,18 @@
+### 開啟 Rewrite
+RewriteEngine On
+DirectoryIndex index.php
+
+### 設定 Rewrite 前面會加上的 path，預設會是 DocumentRoot (如：/var/www/html）
+RewriteBase /
+
+# Rules 將會由上往下依序執行
+# 直到最後一行或遇到有符合且有 L flag 的 Rule 就會停止
+### Rule 1. 輸入 domain.com/home 將會顯示 index.php 的內容
+RewriteRule ^home$ index.php [NC,L]
+
+### Rule 2. 輸入 domain.com/redirect.html 將會被導至 domain.com/rewrite.html
+RewriteRule ^$ home [NC,R=302,L]
+
+### Rule 3. 如果輸入 domain.com/secret/… 這樣格式的網址，則去掉 secret/ 後，轉回 root 並加上 .html
+### $1 是正規表達式的 group capture，就是 $1=(.*) 取得括號內的值
+# RewriteRule ^secret/(.*)$ $1.html [NC,L]
